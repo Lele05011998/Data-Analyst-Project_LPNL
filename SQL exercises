@@ -1,0 +1,107 @@
+/*
+create database Nhat_Le
+go
+use Nhat_Le
+*/
+create table tblCategory
+(
+[CategoryID] int IDENTITY(1,1) Primary key,
+
+[CategoryName] nvarchar (255) NULL
+)
+create table tblContinent 
+(
+[ContinentID] [int] IDENTITY(1,1) NOT NULL primary key,
+
+[ContinentName] [nvarchar](255) NULL, 
+
+[Summary] [varchar](100) NULL
+)
+go
+create table tblCountry 
+(
+ [CountryID] [int] IDENTITY(1,1) NOT NULL primary key, 
+
+[CountryName] [nvarchar](255) NULL, 
+
+[ContinentID] [int] NULL 
+Constraint FK_Country Foreign key (ContinentID) References tblContinent (ContinentID)
+ON DELETE CASCADE 
+)
+go
+create table tblEvent
+(
+[EventID] [int] IDENTITY(1,1) NOT NULL primary key,
+
+[EventName] [varchar](8000) NULL, 
+
+[EventDetails] [varchar](max) NULL, 
+
+[EventDate] [date] NULL, 
+
+[CountryID] [int] NULL, 
+
+[CategoryID] [int] NULL  
+Foreign key (CountryID) References tblCountry (CountryID),
+Foreign key (CategoryID) References tblCategory (CategoryID)
+ON DELETE CASCADE
+)
+select * from tblCategory
+----câu 2 chạy file data
+----câu 3
+select * from tblEvent where EventDate > '2000'
+
+----câu 4
+select * from tblEvent inner join tblCategory on tblEvent.CategoryID = tblCategory.CategoryID
+where CategoryName IN ('Natural world','War and conflict','Economy') 
+and year(eventdate) > '1980' and year(eventdate) < '1989'
+
+----câu 5
+select * from tblEvent where EventName LIKE '%war%'
+
+----câu 6
+select * from tblContinent where Summary IS NOT NULL
+
+----câu 7
+select count(CountryName) as amount_of_country,ContinentName from tblCountry join tblContinent on tblCountry.ContinentID = tblContinent.ContinentID 
+group by ContinentName
+
+----câu 8
+select count(EventID) AS NoEvent, CountryName from tblEvent join tblCountry on tblEvent.CountryID =  tblCountry.CountryID
+group by CountryName
+
+----câu 9
+
+Begin tran
+go
+;with CTE2
+AS
+( 
+	select * from tblEvent
+	join tblCountry on tblEvent.CountryID = tblCountry.CountryID
+	join tblContinent on tblCountry.ContinentID = tblContinent.ContinentID
+	where Summary IS NULL
+)
+DELETE from CTE2
+go
+
+COMMIT
+
+----câu 10
+
+select  top 10 count(EventID) AMOUNT_OF_EVENT, CountryName, CategoryName from tblEvent
+join tblCategory on tblEvent.CategoryID = tblCategory.CategoryID
+join tblCountry on tblEvent.CountryID = tblCountry.CountryID 
+group by CountryName, CategoryName order by count(EventID) DESC
+
+----câu 11
+select count(EventID) AS Amount_of_event, CountryName, Year(eventDate) AS [YEAR] from tblEvent
+join tblCountry on tblEvent.CountryID = tblCountry.CountryID 
+group by CountryName,Year(eventDate) order by YEAR(EventDate) ASC
+
+----câu 12
+begin tran
+update tblEvent set EventDetails = 'When, How and Why World War 1 began' where EventName = 'World War 1 began'
+
+update tblEvent set EventDetails = 'World after WWII' where EventName = 'World War II ends'
+commit
